@@ -29,18 +29,20 @@ class Mario:
         # Number of experiences between Q target and Q online
         self.sync_every = 1e4   
 
+        # number of experiences between saving the network
         self.save_every = 5e5   
         self.save_dir = save_dir
 
         self.use_cuda = torch.cuda.is_available()
 
-        # Mario's DNN to predict the most optimal action - we implement this in the `neural` section :)
+        # Mario's DNN to predict the most optimal action
         self.net = MarioNet(self.state_dim, self.action_dim).float()
         if self.use_cuda:
             self.net = self.net.to(device='cuda')
         if checkpoint:
             self.load(checkpoint)
 
+        # Loss and optimizer
         self.optimizer = torch.optim.Adam(self.net.parameters(), lr=0.00025)
         self.loss_fn = torch.nn.SmoothL1Loss()
 
@@ -49,12 +51,15 @@ class Mario:
         """Given a state, choose an epsilon-greedy action and update value of step."""
         # Explore
         if np.random.rand() < self.exploration_rate:
+            # Choose random action
             action_idx = np.random.randint(self.action_dim)
         # Exploit
         else:
             state = torch.FloatTensor(state).cuda() if self.use_cuda else torch.FloatTensor(state)
             state = state.unsqueeze(0)
+            # Greedy action using online DQN
             action_values = self.net(state, model='online')
+            # Get argmax of Q values
             action_idx = torch.argmax(action_values, axis=1).item()
 
         # Decay exploration rate
@@ -100,10 +105,13 @@ class Mario:
 
     def update_Q_online(self, td_estimate, td_target) :
         """Updates Q_online"""
+        # Calculate loss
         loss = self.loss_fn(td_estimate, td_target)
+        # Backpropagate loss
         self.optimizer.zero_grad()
         loss.backward()
-        self.optimizer.step()
+        # Update weights
+        self.optimizer.step()   
         return loss.item()
 
 
@@ -114,15 +122,19 @@ class Mario:
 
     def learn(self):
         """Update online action value (Q) function with a batch of experiences"""
+        # If in sync step, sync target and online nets
         if self.curr_step % self.sync_every == 0:
             self.sync_Q_target()
 
+        # If in save step, save nets
         if self.curr_step % self.save_every == 0:
             self.save()
 
+        # If still in burn-in phase, do nothing
         if self.curr_step < self.burnin:
             return None, None
 
+        # If not in learn step, do nothing
         if self.curr_step % self.learn_every != 0:
             return None, None
 
