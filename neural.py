@@ -3,9 +3,10 @@ import copy
 
 
 class MarioNet(nn.Module):
-    """DDQN"""
+    """Target and Online nets for DDQN"""
 
     def __init__(self, input_dim, output_dim):
+
         super().__init__()
         c, h, w = input_dim
 

@@ -3,7 +3,10 @@ import time, datetime
 import matplotlib.pyplot as plt
 
 class MetricLogger():
+    """Keeps track of training metrics"""
+
     def __init__(self, save_dir):
+        # Save directory
         self.save_log = save_dir / "log"
         with open(self.save_log, "w") as f:
             f.write(
@@ -11,6 +14,8 @@ class MetricLogger():
                 f"{'MeanLength':>15}{'MeanLoss':>15}{'MeanQValue':>15}"
                 f"{'TimeDelta':>15}{'Time':>20}\n"
             )
+
+        # Plots
         self.ep_rewards_plot = save_dir / "reward_plot.jpg"
         self.ep_lengths_plot = save_dir / "length_plot.jpg"
         self.ep_avg_losses_plot = save_dir / "loss_plot.jpg"
@@ -45,7 +50,7 @@ class MetricLogger():
             self.curr_ep_loss_length += 1
 
     def log_episode(self):
-        "Mark end of episode"
+        """Mark end of episode"""
         self.ep_rewards.append(self.curr_ep_reward)
         self.ep_lengths.append(self.curr_ep_length)
         if self.curr_ep_loss_length == 0:
@@ -60,6 +65,7 @@ class MetricLogger():
         self.init_episode()
 
     def init_episode(self):
+        """Initialize metrics for new episode"""
         self.curr_ep_reward = 0.0
         self.curr_ep_length = 0
         self.curr_ep_loss = 0.0

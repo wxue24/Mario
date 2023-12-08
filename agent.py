@@ -49,7 +49,7 @@ class Mario:
 
     def act(self, state):
         """Given a state, choose an epsilon-greedy action and update value of step."""
-        # Explore
+        # Explore 
         if np.random.rand() < self.exploration_rate:
             # Choose random action
             action_idx = np.random.randint(self.action_dim)
